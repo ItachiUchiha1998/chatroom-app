@@ -10,6 +10,6 @@ to run this app:
 libraries used : Socket.IO for bidirectional communication between servers
                  Mongoose for storing data in Mongo Database
                  
-Private messages can be sent by typing /w [username] before your message and this message will not
+Private messages can be sent by typing  '/w [username]' without qoutes  before your message and this message will not
 be stored in database.
 
