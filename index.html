@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>IO Chat</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<script src="http://code.jquery.com/jquery-latest.min.js" ></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<style>
+		body{
+			margin-top: 30px;
+
+		}
+		#messageArea{
+			display: none;
+		}
+		.personalChat{
+			color: blue;
+			font-weight: italic bold;
+		}
+		.private{
+			color: blue;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+	<div id="userFormArea" class="row">
+		<div class="col-md-12">
+			<form id="userForm">
+					<div class="form-group">
+						<label>Enter UserName</label>
+						<input class="form-control" id="username">
+						<br />
+						<input type="submit" class="btn btn-primary" value="Login">
+					</div>
+				</form>
+		</div>
+	</div>
+
+		<div class="row" id="messageArea">
+			<div class="col-md-4">
+				<div class="well">
+					<h3>Online Users</h3>
+					<ul id="users" class="list-group"></ul>
+				</div>
+			</div>
+			<div class="col-md-8">
+				<div class="chat" id="chat"></div>
+				<form id="messageForm">
+					<div class="form-group">
+						<label>Enter Message</label>
+						<textarea class="form-control" id="message"></textarea>
+						<br />
+						<input type="submit" class="btn btn-primary" value="Send Message">
+					</div>
+				</form>
+			</div>
+		</div>		
+	</div>
+
+<script>
+	$(function() {
+		var socket = io.connect();
+		var $messageForm = $('#messageForm');
+		var $message = $('#message');
+		var $chat = $('#chat');
+		var $userFormArea = $('#userFormArea');
+		var $userForm = $('#userForm');
+		var $messageArea = $('#messageArea');
+		var $users = $('#users');
+		var $username = $('#username');
+
+		$messageForm.submit(function(e) { // send msg
+			e.preventDefault(); ///
+			socket.emit('send message',$message.val()); // call send message module in index.js
+			$message.val('');	// make value of  textarea empty after msg is sents
+		});               
+
+		socket.on('new message',function(data) { // when new msg is sent this module is encountered
+			$chat.append('<div class="well"><strong>'+data.user+': </strong>'+data.msg+'</div>');// append the chat box with msg and display username
+	});
+
+		$userForm.submit(function(e) { // accessed when userform is submitted
+			e.preventDefault();
+			socket.emit('new user',$username.val(),function(data) { // goto given module in index.js
+				if(data){ // data is not empty
+					$userFormArea.hide(); // hide userform
+					$messageArea.show(); // show chatbox
+				}
+			});
+			$username.val('');	// username value is converted back to empty
+		});
+
+		socket.on('get users',function(data) {
+			var html = '';
+			for(var i=0;i< data.length;i++){ 
+				html += '<li class="list-group-item">'+data[i]+'</li>';
+				if(data[i] === data.username) html += '<p>(You)</p>'; //
+			}
+			$users.html(html);
+		});
+
+		socket.on('whisper',function(data){
+			$chat.append('<div class="well private"><strong><span class="personalChat">'+data.user+': </strong>'+data.msg+'</span></div>');
+		});
+/**/
+		socket.on('load old msgs',function(docs){
+			for(var i=0;i< docs.length;i++){ // for reverse order replace 0 and docs.length-1
+				displayMsg(docs[i]);
+			}
+		});
+
+		function displayMsg(data){
+			$chat.append('<div class="well"><strong>'+data.username+': </strong>'+data.message+'</div>');// append the chat with msg and display username
+		}
+	});
+</script>
+
+</body>
+</html>
