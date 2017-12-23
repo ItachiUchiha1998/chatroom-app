@@ -10,6 +10,7 @@ mongoose.connect('mongodb://localhost/chatApp',function(err){// setting up Datab
 	}else{ // if no error
 		console.log('Connection established with database');
 	}
+
 });
 
 var chatSchema = mongoose.Schema({ // Setting up Schema
